@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Langkah Bijak: Quest Pilihan Hidup</title>
+  <meta name="description" content="Game simulasi keputusan interaktif untuk layanan Bimbingan dan Konseling (BK) remaja guna melatih empati, asertivitas, dan kontrol diri." />
+  <meta property="og:title" content="Langkah Bijak: Quest Pilihan Hidup" />
+  <meta property="og:description" content="Game simulasi keputusan interaktif untuk layanan Bimbingan dan Konseling (BK) remaja guna melatih empati, asertivitas, dan kontrol diri." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0fdf9',
+              100: '#ccfbef',
+              200: '#99f6df',
+              500: '#14b8a6',
+              600: '#0d9488',
+              700: '#0f766e',
+              800: '#115e59',
+              900: '#134e4a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    @media print {
+      body { background: white !important; color: black !important; }
+      .no-print { display: none !important; }
+      .print-shadow-none { box-shadow: none !important; border: 1px solid #e2e8f0 !important; }
+    }
+    /* Animasi lembut */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes pulseScore {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+      100% { transform: scale(1); }
+    }
+    .animate-score {
+      animation: pulseScore 0.4s ease-out;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col antialiased selection:bg-teal-100 selection:text-teal-900">
+
+  <!-- TOP APP BAR -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+      <!-- Brand & Title -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-teal-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+          🌱
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-bold text-slate-900 text-base sm:text-lg leading-tight">Langkah Bijak</h1>
+            <span class="text-xs text-slate-400 hidden sm:inline">·</span>
+            <span class="text-xs font-medium text-teal-700 bg-teal-50 px-2 py-0.5 rounded text-nowrap hidden sm:inline">Quest BK Remaja</span>
+          </div>
+          <p class="text-xs text-slate-500">Simulasi Keputusan & Bimbingan Konseling</p>
+        </div>
+      </div>
+
+      <!-- Controls & Quick Status -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Audio Toggle Button -->
+        <button id="btnSoundToggle" onclick="toggleAudio()" title="Aktifkan/Matikan Suara" 
+          class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">
+          <span id="soundIcon">🔊</span>
+          <span id="soundLabel" class="hidden sm:inline">Audio Aktif</span>
+        </button>
+
+        <!-- Panduan Button -->
+        <button onclick="openGuideModal()" 
+          class="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-teal-700 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 rounded-lg transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <span>Panduan Nilai</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- REAL-TIME STATS BAR (Hanya Tampil Saat Bermain Game) -->
+    <div id="statsBarContainer" class="hidden border-t border-slate-100 bg-slate-50/80 backdrop-blur-xs py-2 px-4 sm:px-6">
+      <div class="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-2 text-slate-600 font-medium">
+          <span id="barPlayerBadge" class="text-slate-800 font-semibold truncate max-w-[140px]">Sobat Bijak</span>
+          <span class="text-slate-300">|</span>
+          <span id="barScenarioIndicator" class="text-teal-700">Skenario 1 / 5</span>
+        </div>
+
+        <!-- 3 Karakter Meter Real-time -->
+        <div class="flex items-center gap-4 sm:gap-6 ml-auto">
+          <!-- Empati -->
+          <div class="flex items-center gap-2" title="Empati: Memahami perasaan orang lain">
+            <span class="text-rose-500 font-bold">💖 Empati</span>
+            <div class="w-16 sm:w-20 bg-slate-200 rounded-full h-2 overflow-hidden">
+              <div id="meterEmpati" class="bg-rose-500 h-2 rounded-full transition-all duration-500" style="width: 40%"></div>
+            </div>
+            <span id="valEmpati" class="font-bold text-slate-700 w-6 text-right">40</span>
+          </div>
+
+          <!-- Asertivitas -->
+          <div class="flex items-center gap-2" title="Asertif: Berani bersuara jujur tanpa menyakiti">
+            <span class="text-indigo-600 font-bold">🗣️ Asertif</span>
+            <div class="w-16 sm:w-20 bg-slate-200 rounded-full h-2 overflow-hidden">
+              <div id="meterAsertif" class="bg-indigo-600 h-2 rounded-full transition-all duration-500" style="width: 40%"></div>
+            </div>
+            <span id="valAsertif" class="font-bold text-slate-700 w-6 text-right">40</span>
+          </div>
+
+          <!-- Kontrol Diri -->
+          <div class="flex items-center gap-2" title="Kontrol Diri: Mengendalikan emosi dan dorongan sesaat">
+            <span class="text-emerald-600 font-bold">🛡️ Kontrol</span>
+            <div class="w-16 sm:w-20 bg-slate-200 rounded-full h-2 overflow-hidden">
+              <div id="meterKontrol" class="bg-emerald-600 h-2 rounded-full transition-all duration-500" style="width: 40%"></div>
+            </div>
+            <span id="valKontrol" class="font-bold text-slate-700 w-6 text-right">40</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col justify-center">
+
+    <!-- SCREEN 1: ONBOARDING / BERANDA -->
+    <section id="screenOnboarding" class="animate-fade-in">
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-10 shadow-sm text-center">
+        <!-- Hero Badge & Illustration -->
+        <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-teal-50 text-4xl mb-5 shadow-xs border border-teal-100">
+          🌱
+        </div>
+        
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          Langkah Bijak: Quest Pilihan Hidup
+        </h2>
+        <p class="mt-3 text-slate-600 text-sm sm:text-base max-w-xl mx-auto leading-relaxed">
+          Sebagai remaja, setiap hari kamu menghadapi berbagai pilihan pertemanan, emosi, dan tanggung jawab.
+          Uji kebijaksanaanmu dalam 5 skenario nyata untuk melihat bagaimana pilihanmu membentuk karakter dirimu!
+        </p>
+
+        <!-- 3 Dimensi Karakter Preview Cards -->
+        <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
+          <div class="p-4 rounded-xl border border-rose-100 bg-rose-50/50">
+            <div class="flex items-center gap-2 mb-1.5">
+              <span class="text-xl">💖</span>
+              <h3 class="font-bold text-rose-950 text-sm">Empati</h3>
+            </div>
+            <p class="text-xs text-slate-600 leading-normal">
+              Kemampuan memahami perasaan orang lain, mencegah perundungan, dan peduli terhadap sesama.
+            </p>
+          </div>
+
+          <div class="p-4 rounded-xl border border-indigo-100 bg-indigo-50/50">
+            <div class="flex items-center gap-2 mb-1.5">
+              <span class="text-xl">🗣️</span>
+              <h3 class="font-bold text-indigo-950 text-sm">Asertivitas</h3>
+            </div>
+            <p class="text-xs text-slate-600 leading-normal">
+              Keberanian menyampaikan pendapat, menolak ajakan negatif, dan menegakkan batasan dengan santun.
+            </p>
+          </div>
+
+          <div class="p-4 rounded-xl border border-emerald-100 bg-emerald-50/50">
+            <div class="flex items-center gap-2 mb-1.5">
+              <span class="text-xl">🛡️</span>
+              <h3 class="font-bold text-emerald-950 text-sm">Kontrol Diri</h3>
+            </div>
+            <p class="text-xs text-slate-600 leading-normal">
+              Regulasi emosi saat kecewa, mengelola waktu, serta menahan dorongan impulsif demi tujuan jangka panjang.
+            </p>
+          </div>
+        </div>
+
+        <!-- Profil Siswa Input -->
+        <div class="mt-8 max-w-md mx-auto bg-slate-50 p-5 rounded-xl border border-slate-200 text-left">
+          <label for="inputPlayerName" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+            Nama / Panggilan Siswa
+          </label>
+          <input type="text" id="inputPlayerName" placeholder="Contoh: Rian Pratama" 
+            class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white text-slate-900"
+            maxlength="28" value="Sobat Bijak" />
+          
+          <div class="mt-3 grid grid-cols-2 gap-3">
+            <div>
+              <label for="selectClassGrade" class="block text-xs font-semibold text-slate-600 mb-1">
+                Jenjang / Kelas
+              </label>
+              <select id="selectClassGrade" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                <option value="Kelas VII (SMP)">Kelas VII (SMP)</option>
+                <option value="Kelas VIII (SMP)">Kelas VIII (SMP)</option>
+                <option value="Kelas IX (SMP)">Kelas IX (SMP)</option>
+                <option value="Kelas X (SMA/SMK)" selected>Kelas X (SMA/SMK)</option>
+                <option value="Kelas XI (SMA/SMK)">Kelas XI (SMA/SMK)</option>
+                <option value="Kelas XII (SMA/SMK)">Kelas XII (SMA/SMK)</option>
+                <option value="Remaja Umum">Remaja Umum</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">
+                Layanan BK
+              </label>
+              <div class="px-3 py-2 text-xs font-medium text-teal-800 bg-teal-100/60 rounded-lg flex items-center h-[38px]">
+                Bimbingan Pribadi-Sosial
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mulai Button -->
+        <div class="mt-8">
+          <button onclick="startGame()" 
+            class="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white font-bold text-base shadow-sm transition-all transform hover:-translate-y-0.5 cursor-pointer">
+            <span>Mulai Petualangan Quest</span>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+          </button>
+          <p class="mt-3 text-xs text-slate-400">
+            Waktu estimasi: ~3-5 menit · 5 Skenario Kasus Interaktif · Lengkap dengan Ulasan Konseling
+          </p>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- SCREEN 2: GAMEPLAY (SCENARIO CARD & DECISION OPTIONS) -->
+    <section id="screenGameplay" class="hidden animate-fade-in">
+      <!-- Progress Bar Tracker -->
+      <div class="mb-5">
+        <div class="flex items-center justify-between text-xs font-semibold text-slate-600 mb-2">
+          <div class="flex items-center gap-2">
+            <span id="badgeCategory" class="px-2.5 py-0.5 rounded bg-teal-100 text-teal-800 font-bold uppercase tracking-wide text-[10px]">
+              Anti-Bullying & Asertivitas
+            </span>
+            <span class="text-slate-400">·</span>
+            <span id="textScenarioIndex">Skenario 1 dari 5</span>
+          </div>
+          <span id="textProgressPercent" class="text-teal-700">20% Selesai</span>
+        </div>
+        <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+          <div id="progressBarFill" class="bg-teal-600 h-2 rounded-full transition-all duration-500" style="width: 20%"></div>
+        </div>
+      </div>
+
+      <!-- Skenario Card -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm mb-6">
+        <div class="flex items-start gap-4">
+          <div id="scenarioIcon" class="w-12 h-12 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center text-2xl shrink-0 border border-teal-100">
+            💬
+          </div>
+          <div class="flex-1">
+            <h3 id="scenarioTitle" class="text-lg sm:text-xl font-bold text-slate-900 leading-tight">
+              Candaan Toxic di Grup Obrolan Kelas
+            </h3>
+            <p class="mt-1 text-xs text-slate-500" id="scenarioContext">
+              Situasi: Lingkungan Pertemanan & Media Sosial
+            </p>
+          </div>
+        </div>
+
+        <!-- Narasi Cerita Kasus -->
+        <div class="mt-5 bg-slate-50 rounded-xl p-4 sm:p-5 border border-slate-200/80">
+          <p id="scenarioStory" class="text-sm sm:text-base text-slate-700 leading-relaxed font-normal">
+            Di grup chat WhatsApp kelas, salah satu teman sering menjadikan bentuk fisik atau kekurangan teman lain sebagai bahan lelucon. Saat ditegur, dia selalu berdalih: <em>"Baperan amat sih, kan cuma bercanda santai!"</em>. Hari ini, candaan itu mulai menyakiti temanmu sampai dia berencana keluar dari grup.
+          </p>
+          
+          <div class="mt-3 pt-3 border-t border-slate-200 flex items-center gap-2 text-xs font-semibold text-teal-800">
+            <span>❓ Refleksi:</span>
+            <span>Bagaimana langkah paling tepat yang kamu ambil dalam situasi ini?</span>
+          </div>
+        </div>
+
+        <!-- Opsi Pilihan Jawaban -->
+        <div class="mt-6">
+          <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+            Pilih Sikap Tindakanmu:
+          </h4>
+          <div id="optionsList" class="space-y-3">
+            <!-- Pilihan di-render lewat Javascript -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- SCREEN 3: RINGKASAN AKHIR / GAME OVER / SERTIFIKAT REFLEKSI -->
+    <section id="screenSummary" class="hidden animate-fade-in">
+      <div id="printableReport" class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-10 shadow-sm print-shadow-none">
+        
+        <!-- Header Ringkasan -->
+        <div class="text-center pb-6 border-b border-slate-200">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-teal-50 text-teal-700 text-3xl mb-3 border border-teal-100">
+            🏆
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            Hasil Quest Pilihan Hidup
+          </h2>
+          <p class="mt-1.5 text-sm text-slate-600">
+            Laporan Profil Kematangan Sosial & Emosional Siswa · Layanan Bimbingan dan Konseling
+          </p>
+          
+          <!-- Identitas Siswa -->
+          <div class="mt-4 inline-flex items-center gap-3 px-4 py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs sm:text-sm font-medium text-slate-700">
+            <span>Nama: <strong id="summaryPlayerName" class="text-slate-900">Rian Pratama</strong></span>
+            <span class="text-slate-300">·</span>
+            <span>Jenjang: <strong id="summaryPlayerGrade" class="text-slate-900">Kelas X (SMA/SMK)</strong></span>
+            <span class="text-slate-300">·</span>
+            <span>Tanggal: <span id="summaryDate">09 Okt 2026</span></span>
+          </div>
+        </div>
+
+        <!-- Kartu Arketipe Karakter Siswa -->
+        <div class="my-6 p-6 rounded-2xl bg-gradient-to-br from-teal-50 via-white to-emerald-50 border border-teal-200">
+          <div class="text-xs font-bold uppercase tracking-wider text-teal-700 mb-1">
+            Profil Karakter Utama Siswa
+          </div>
+          <h3 id="archetypeTitle" class="text-xl sm:text-2xl font-black text-slate-900 leading-tight">
+            Sang Komunikator Asertif & Berempati Tinggi
+          </h3>
+          <p id="archetypeDesc" class="mt-2 text-sm text-slate-600 leading-relaxed">
+            Kamu menunjukkan kemampuan istimewa dalam menjaga perasaan orang lain tanpa harus mengorbankan batasan pribadimu. Kamu berani bersuara jujur secara santun dan mampu berpikir jernih saat menghadapi tekanan.
+          </p>
+        </div>
+
+        <!-- Skor Rincian 3 Dimensi -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 my-6">
+          <!-- Kartu Empati -->
+          <div class="p-4 rounded-xl border border-rose-200 bg-rose-50/40">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-rose-700">💖 Empati</span>
+              <span id="finalScoreEmpati" class="text-xl font-extrabold text-rose-900">85/100</span>
+            </div>
+            <div class="w-full bg-rose-200 h-2 rounded-full overflow-hidden mb-2">
+              <div id="finalBarEmpati" class="bg-rose-500 h-2 rounded-full" style="width: 85%"></div>
+            </div>
+            <p id="finalFeedbackEmpati" class="text-xs text-slate-600 leading-normal">
+              Peka terhadap kebutuhan teman, aktif mencegah tindakan merendahkan, dan berjiwa penolong.
+            </p>
+          </div>
+
+          <!-- Kartu Asertif -->
+          <div class="p-4 rounded-xl border border-indigo-200 bg-indigo-50/40">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-indigo-700">🗣️ Asertivitas</span>
+              <span id="finalScoreAsertif" class="text-xl font-extrabold text-indigo-900">80/100</span>
+            </div>
+            <div class="w-full bg-indigo-200 h-2 rounded-full overflow-hidden mb-2">
+              <div id="finalBarAsertif" class="bg-indigo-600 h-2 rounded-full" style="width: 80%"></div>
+            </div>
+            <p id="finalFeedbackAsertif" class="text-xs text-slate-600 leading-normal">
+              Mampu mengekspresikan ketidaksetujuan dengan elegan tanpa menyakiti orang lain.
+            </p>
+          </div>
+
+          <!-- Kartu Kontrol Diri -->
+          <div class="p-4 rounded-xl border border-emerald-200 bg-emerald-50/40">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">🛡️ Kontrol Diri</span>
+              <span id="finalScoreKontrol" class="text-xl font-extrabold text-emerald-900">75/100</span>
+            </div>
+            <div class="w-full bg-emerald-200 h-2 rounded-full overflow-hidden mb-2">
+              <div id="finalBarKontrol" class="bg-emerald-600 h-2 rounded-full" style="width: 75%"></div>
+            </div>
+            <p id="finalFeedbackKontrol" class="text-xs text-slate-600 leading-normal">
+              Tidak mudah terpancing emosi sesaat, terbiasa berpikir sebelum mengambil keputusan fatal.
+            </p>
+          </div>
+        </div>
+
+        <!-- Catatan Bimbingan & Konseling (Pesan Guru BK) -->
+        <div class="my-6 p-5 rounded-xl bg-slate-50 border border-slate-200">
+          <div class="flex items-center gap-2 mb-2 text-teal-800 font-bold text-sm">
+            <span>💡 Pesan Refleksi dari Ruang Bimbingan & Konseling:</span>
+          </div>
+          <p id="counselorNote" class="text-xs sm:text-sm text-slate-700 leading-relaxed italic">
+            "Ingatlah bahwa membuat kesalahan atau merasa bingung adalah bagian wajar dari tumbuh dewasa. Yang terpenting bukanlah selalu sempurna, tetapi kesediaan untuk belajar mengambil jeda sebelum bereaksi. Ketika ragu, jangan segan untuk bercerita kepada guru BK, orang tua, atau sahabat yang kamu percaya."
+          </p>
+        </div>
+
+        <!-- Rekap 5 Keputusan Siswa (Accordion / List) -->
+        <div class="mt-8">
+          <h4 class="text-sm font-bold text-slate-800 mb-3 flex items-center justify-between">
+            <span>Rangkuman Keputusan Sepanjang Quest:</span>
+            <span class="text-xs font-normal text-slate-500">5 Kasus Remaja</span>
+          </h4>
+          <div id="decisionsRecapList" class="space-y-3">
+            <!-- Diisi lewat JS -->
+          </div>
+        </div>
+
+        <!-- Tombol Aksi Akhir -->
+        <div class="mt-8 pt-6 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 no-print">
+          <button onclick="restartGame()" 
+            class="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-sm transition-colors cursor-pointer flex items-center gap-2">
+            <span>🔄 Main Lagi (Ulangi Quest)</span>
+          </button>
+
+          <div class="flex items-center gap-3">
+            <button onclick="window.print()" 
+              class="px-5 py-2.5 rounded-xl border border-slate-300 hover:border-slate-400 bg-white text-slate-700 font-semibold text-sm transition-colors cursor-pointer flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+              <span>Cetak Hasil (PDF)</span>
+            </button>
+            <button onclick="shareResult()" 
+              class="px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-sm transition-colors cursor-pointer flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+              <span>Salin Ringkasan</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+
+  <!-- MODAL: UMPAN BALIK REFLEKSI LANGSUNG (FEEDBACK BK) -->
+  <div id="feedbackModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-7 shadow-xl border border-slate-200 animate-fade-in relative max-h-[90vh] overflow-y-auto">
+      
+      <!-- Header Feedback -->
+      <div class="flex items-center gap-3 mb-4">
+        <div id="modalTypeBadge" class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl font-bold">
+          🌟
+        </div>
+        <div>
+          <span id="modalTypeCategory" class="text-xs font-bold uppercase tracking-wider block">
+            Pilihan Bijak & Asertif
+          </span>
+          <h3 id="modalFeedbackTitle" class="text-base sm:text-lg font-bold text-slate-900">
+            Respon yang Luar Biasa!
+          </h3>
+        </div>
+      </div>
+
+      <!-- Dampak Poin -->
+      <div id="modalScoreDeltas" class="mb-4 flex flex-wrap items-center gap-2 text-xs">
+        <!-- Render delta poin via JS -->
+      </div>
+
+      <!-- Penjelasan Edukasi BK -->
+      <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 text-slate-700 text-sm leading-relaxed mb-4">
+        <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+          <span>🧠 Ulasan Bimbingan Konseling:</span>
+        </h4>
+        <p id="modalFeedbackExplanation">
+          Tindakan ini sangat tepat karena mengedepankan komunikasi asertif tanpa menyakiti.
+        </p>
+      </div>
+
+      <!-- Kutipan Hikmah BK -->
+      <div class="p-3 bg-teal-50/70 border-l-4 border-teal-600 rounded-r-lg text-xs text-teal-900 mb-6">
+        <span class="font-bold">Tips Guru BK: </span>
+        <span id="modalWisdomQuote">"Menolak ajakan salah bukan berarti memusuhi teman, melainkan menjaga martabat persahabatan itu sendiri."</span>
+      </div>
+
+      <!-- Tombol Next -->
+      <div class="flex justify-end">
+        <button id="btnNextScenario" onclick="proceedToNext()" 
+          class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white font-bold text-sm shadow-sm transition-all cursor-pointer flex items-center justify-center gap-2">
+          <span id="nextBtnText">Lanjut ke Skenario Berikutnya</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- MODAL: PANDUAN NILAI KARAKTER -->
+  <div id="guideModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200 animate-fade-in relative">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+        <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+          <span>📖 Panduan 3 Dimensi Karakter BK</span>
+        </h3>
+        <button onclick="closeGuideModal()" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer">✕</button>
+      </div>
+      
+      <div class="mt-4 space-y-4 text-xs sm:text-sm text-slate-600">
+        <div class="p-3 rounded-lg bg-rose-50 border border-rose-100">
+          <h4 class="font-bold text-rose-900 mb-1">💖 Empati (0 - 100)</h4>
+          <p>Membiasakan diri peka terhadap perasaan sesama, tidak membiarkan teman dirundung (anti-bullying), dan menghargai keberagaman cara pandang orang lain.</p>
+        </div>
+        <div class="p-3 rounded-lg bg-indigo-50 border border-indigo-100">
+          <h4 class="font-bold text-indigo-900 mb-1">🗣️ Asertivitas (0 - 100)</h4>
+          <p>Mampu menyatakan keinginan, perasaan, dan batasan pribadi dengan jujur dan tegas, namun tanpa menghina (berbeda dari sikap pasif yang memendam atau agresif yang menyerang).</p>
+        </div>
+        <div class="p-3 rounded-lg bg-emerald-50 border border-emerald-100">
+          <h4 class="font-bold text-emerald-900 mb-1">🛡️ Kontrol Diri (0 - 100)</h4>
+          <p>Kecerdasan mengelola dorongan emosi sesaat, berpikir logis sebelum bertindak, membagi waktu dengan bijak, serta tidak menyalahkan faktor luar ketika menghadapi kegagalan.</p>
+        </div>
+      </div>
+
+      <div class="mt-5 text-right">
+        <button onclick="closeGuideModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 font-semibold text-xs text-slate-800 rounded-lg">
+          Tutup Panduan
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toastMessage" class="fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl text-xs font-medium shadow-lg transition-all duration-300 transform translate-y-12 opacity-0 pointer-events-none">
+    Notifikasi
+  </div>
+
+
+  <!-- JAVASCRIPT GAME LOGIC -->
+  <script>
+    /* =====================================================================
+       DATA SKENARIO SIMULASI (5 SKENARIO KASUS REMAJA LENGKAP & RELATABLE)
+       ===================================================================== */
+    const scenarios = [
+      {
+        id: 1,
+        title: "Candaan Toxic di Grup Obrolan Pertemanan",
+        category: "Anti-Bullying & Batasan Diri",
+        icon: "💬",
+        context: "Ruang Digital & Dinamika Kelompok Teman Sebaya",
+        story: "Di grup obrolan WhatsApp kelas, seorang teman sering menjadikan kekurangan fisik dan logat bicara teman lain sebagai bahan tertawaan. Ketika korban tampak tersinggung, dia mengetik: \"Baperan amat sih bro, kan cuma bercanda santai biar grup nggak sepi!\". Korban mulai diam dan berniat keluar dari grup karena merasa malu dan tersudutkan.",
+        reflectionQuestion: "Bagaimana sikap paling bijak yang kamu ambil dalam situasi ini?",
+        options: [
+          {
+            type: "bijak",
+            label: "Opsi A",
+            text: "Kirim pesan di grup dengan tenang dan tegas: \"Bercandaan fisik kayak gitu bikin nggak nyaman dan bisa menyakiti perasaan teman kita. Yuk ganti topik lain yang asyik tanpa harus merendahkan orang lain.\"",
+            impact: { empati: 15, asertif: 15, kontrol: 10 },
+            feedbackTitle: "Sikap Asertif & Pembela yang Peduli (Upstander)!",
+            explanation: "Langkah ini menunjukkan keberanian membela kebenaran (Upstander) tanpa menyerang personal. Kamu menegaskan batasan (boundaries) sosial dengan sopan sekaligus melindungi martabat teman yang disakiti.",
+            quote: "Humor sejati membuat semua orang tertawa bersama, bukan menertawakan penderitaan salah satu orang."
+          },
+          {
+            type: "pasif",
+            label: "Opsi B",
+            text: "Hanya membaca chat tersebut (read only) atau ikut mengetik stiker tertawa canggung agar kamu tidak dicap 'kaku' atau menjadi sasaran ejekan berikutnya oleh teman-teman.",
+            impact: { empati: -5, asertif: -12, kontrol: -2 },
+            feedbackTitle: "Sikap Pasif / Penonton Bisu (Bystander)",
+            explanation: "Sikap mendiamkan ejekan membuat pelaku merasa perilakunya diterima oleh kelompok. Ketakutanmu untuk bersuara bisa dimaklumi, namun membiarkannya merugikan harga diri temanmu dan memperlemah kepercayaan dirimu sendiri.",
+            quote: "Diam saat melihat ketidakadilan sering kali diartikan sebagai persetujuan tak terucap."
+          },
+          {
+            type: "agresif",
+            label: "Opsi C",
+            text: "Langsung membalas dengan emosi meluap di grup: mengungkit aib fisik teman tersebut dan menghujatnya dengan kata-kata kasar agar dia merasa malu di depan semua anggota grup.",
+            impact: { empati: -8, asertif: 5, kontrol: -15 },
+            feedbackTitle: "Sikap Agresif & Reaktif yang Memperkeruh Masalah",
+            explanation: "Meskipun niatmu ingin membalas ketidakadilan, membalas hinaan dengan hinaan hanya menciptakan lingkaran kekerasan verbal baru dan membuat situasi grup semakin panas tanpa menyelesaikan inti masalah.",
+            quote: "Api tidak bisa dipadamkan dengan api; agresi hanya akan melipatgandakan luka."
+          }
+        ]
+      },
+      {
+        id: 2,
+        title: "Menghadapi Kekecewaan Nilai Ulangan yang Turun",
+        category: "Manajemen Emosi & Growth Mindset",
+        icon: "📝",
+        context: "Ruang Kelas & Regulasi Frustrasi Diri",
+        story: "Hasil ulangan harian Matematika baru saja dibagikan. Nilaimu anjlok jauh di bawah harapan dan batas KKM, padahal kamu sudah belajar semalaman. Teman sebangkumu yang terlihat santai justru mendapat nilai sempurna. Seketika rasa sedih, iri, malu, dan kecewa bercampur menjadi satu di dadamu.",
+        reflectionQuestion: "Bagaimana caramu merespons kekecewaan akademik ini?",
+        options: [
+          {
+            type: "bijak",
+            label: "Opsi A",
+            text: "Tarik napas panjang untuk menenangkan diri. Sadari bahwa nilai buruk ini bukan akhir dari segalanya, lalu temui guru atau teman sebangku sepulang sekolah untuk mempelajari materi yang belum dipahami.",
+            impact: { empati: 8, asertif: 12, kontrol: 16 },
+            feedbackTitle: "Respon Kematangan Emosi & Growth Mindset!",
+            explanation: "Kamu mempraktikkan regulasi emosi yang sangat sehat. Alih-alih tenggelam dalam rasa malu atau menyalahkan keadaan, kamu memandang kegagalan sebagai umpan balik untuk bertumbuh dan mencari solusi nyata.",
+            quote: "Nilai ujian hanyalah gambaran pemahaman saat ini, bukan batasan mutlak dari potensimu di masa depan."
+          },
+          {
+            type: "pasif",
+            label: "Opsi B",
+            text: "Meremas lembar jawaban ulangan, menundukkan kepala di meja, menganggap dirimu memang bodoh, dan memutuskan untuk tidak mau belajar mata pelajaran itu lagi karena merasa sia-sia.",
+            impact: { empati: -2, asertif: -10, kontrol: -12 },
+            feedbackTitle: "Sikap Menyerah & Jebakan Pikiran Negatif",
+            explanation: "Reaksi ini mengarah pada 'learned helplessness' (kepasrahan putus asa). Memberi label negatif pada diri sendiri membuatmu kehilangan motivasi berharga dan menolak potensi peningkatan yang sebenarnya kamu miliki.",
+            quote: "Jangan biarkan satu kegagalan kemarin merampas kesempatanmu untuk menjadi lebih hebat besok."
+          },
+          {
+            type: "agresif",
+            label: "Opsi C",
+            text: "Menggerutu keras di kelas, menuduh guru sengaja membuat soal curang/tidak adil, menuduh temanmu menyontek, serta membanting tempat pensil ke meja hingga membuat teman sekitar kaget.",
+            impact: { empati: -10, asertif: 2, kontrol: -18 },
+            feedbackTitle: "Mekanisme Pertahanan Menyalahkan Orang Lain",
+            explanation: "Ini adalah bentuk mekanisme defensif 'projection' di mana rasa frustrasi dilampiaskan ke lingkungan luar. Sikap ini merusak relasi dengan guru dan teman serta menghambatmu untuk berefleksi secara jujur.",
+            quote: "Menyalahkan orang lain mungkin terasa melegakan sesaat, tapi tidak pernah memperbaiki nilaimu sedikit pun."
+          }
+        ]
+      },
+      {
+        id: 3,
+        title: "Menolak Ajakan Membolos & Tekanan Teman Sebaya",
+        category: "Resolusi Konflik & Peer Pressure",
+        icon: "🚪",
+        context: "Lingkungan Sekolah & Batasan Integritas",
+        story: "Menjelang jam pelajaran terakhir di hari Jumat yang gerah, dua sahabat karibmu mengajakmu kabur melompati pagar samping sekolah untuk nongkrong di warung game: \"Ayo cabut bro, gurunya santai kok! Sekali-kali bandel dong, jangan jadi anak mama terus yang kaku!\". Mereka mendesakmu di depan siswa lain.",
+        reflectionQuestion: "Bagaimana cara menolak ajakan negatif tanpa merusak persahabatan?",
+        options: [
+          {
+            type: "bijak",
+            label: "Opsi A",
+            text: "Tersenyum santai dan menolak dengan mantap: \"Makasih ajakannya bro, tapi aku pilih tetep ikut kelas ini karena nggak mau ambil risiko absen. Nanti pas bel pulang kita nongkrong bareng aja, aku yang traktir es tehnya!\"",
+            impact: { empati: 10, asertif: 18, kontrol: 14 },
+            feedbackTitle: "Menolak dengan Elegan (Saying No with Grace)!",
+            explanation: "Luar biasa! Kamu menggunakan teknik penolakan asertif tingkat tinggi: menolak tindakan negatifnya secara tegas, namun tetap menawarkan alternatif ramah yang menjaga ikatan persahabatan.",
+            quote: "Teman sejati menghormati prinsip dan batasanmu, bukan memaksamu melanggar aturan."
+          },
+          {
+            type: "pasif",
+            label: "Opsi B",
+            text: "Merasa sangat tidak enak dan takut dijauhi sahabat, sehingga akhirnya kamu menunduk dan ikut melompati pagar sekolah sambil gemetar ketakutan sepanjang waktu.",
+            impact: { empati: 0, asertif: -15, kontrol: -12 },
+            feedbackTitle: "Tunduk pada Tekanan Teman (Peer Pressure)",
+            explanation: "Ketakutan akan penolakan sosial membuatmu mengorbankan integritas dan keselamatan diri. Ingatlah, pertemanan yang sehat tidak dibangun di atas rasa takut atau paksaan melanggar norma.",
+            quote: "Keberanian terbesar terkadang adalah berani berkata 'tidak' kepada orang yang kita sukai."
+          },
+          {
+            type: "agresif",
+            label: "Opsi C",
+            text: "Membentak mereka di koridor: \"Kalian tuh anak nakal nggak ada masa depan! Awas ya, aku laporin ke guru BK dan kepala sekolah sekarang juga biar kalian berdua diskors!\"",
+            impact: { empati: -8, asertif: 6, kontrol: -10 },
+            feedbackTitle: "Reaksi Menyerang yang Memantik Permusuhan",
+            explanation: "Meskipun aturan sekolah harus ditaati, menyerang pribadi teman dengan hinaan dan ancaman publik akan memicu permusuhan terbuka dan menutup ruang dialog yang saling menyadarkan.",
+            quote: "Menegakkan kebenaran tidak harus dilakukan dengan menghancurkan harga diri orang lain di depan umum."
+          }
+        ]
+      },
+      {
+        id: 4,
+        title: "Drama Gosip & Hoaks di Media Sosial",
+        category: "Etika Digital & Tanggung Jawab Moral",
+        icon: "📱",
+        context: "Dunia Maya & Jejak Digital (Digital Footprint)",
+        story: "Sebuah akun media sosial anonim sekolah mengunggah tangkapan layar percakapan yang menuduh teman sekelasmu berbuat curang dan berperilaku buruk. Kolom komentar langsung dipenuhi hujatan, fitnah, dan ajakan untuk merepost. Korban belum sempat memberikan klarifikasi dan tampak sangat tertekan di sekolah.",
+        reflectionQuestion: "Bagaimana peranmu dalam menyikapi fenomena cyberbullying ini?",
+        options: [
+          {
+            type: "bijak",
+            label: "Opsi A",
+            text: "Memutus rantai penyebaran dengan tidak memberi like/share, mengajak teman sekelas untuk tidak berspekulasi sebelum ada bukti, serta mendampingi korban berkonsultasi ke guru BK atau wali kelas.",
+            impact: { empati: 16, asertif: 12, kontrol: 14 },
+            feedbackTitle: "Pahlawan Digital yang Cerdas & Penuh Empati!",
+            explanation: "Kamu menerapkan prinsip 'Saring Sebelum Sharing' dan bertindak sebagai 'Upstander' di dunia maya. Jejak digital memiliki dampak psikologis nyata, dan tindakanmu melindungi orang lain dari depresi akibat cyberbullying.",
+            quote: "Di dunia maya, jarimu adalah cerminan nuranimu. Jadilah penyejuk di tengah badai informasi."
+          },
+          {
+            type: "pasif",
+            label: "Opsi B",
+            text: "Membaca semua komentar pedas dengan rasa penasaran, lalu membiarkannya saja karena menganggap itu urusan pribadi orang lain yang tidak ada hubungannya denganmu.",
+            impact: { empati: -4, asertif: -8, kontrol: 2 },
+            feedbackTitle: "Sikap Apatis / Masa Bodoh",
+            explanation: "Walaupun kamu tidak ikut menyebarkan, sikap apatis saat seseorang sedang dirundung menunjukkan kurangnya kepekaan sosial. Dalam masyarakat yang sehat, kita perlu saling menjaga dan peduli.",
+            quote: "Kepedulian kecil yang kamu tunjukkan bisa menjadi alasan seseorang bertahan melewati hari yang berat."
+          },
+          {
+            type: "agresif",
+            label: "Opsi C",
+            text: "Ikut menulis komentar bernada menyindir di postingan tersebut, mengetag nama teman lain untuk ikut meramaikan drama, dan meneruskan tautan itu ke grup obrolan tongkrongan.",
+            impact: { empati: -16, asertif: 4, kontrol: -16 },
+            feedbackTitle: "Terlibat dalam Cyberbullying & Penyebaran Hoaks",
+            explanation: "Ikut meramaikan hujatan tanpa fakta adalah bentuk perundungan siber (cyberbullying). Tindakan ini berpotensi melanggar hukum (UU ITE) dan meninggalkan jejak digital negatif yang bisa merugikan masa depanmu.",
+            quote: "Setiap kata jahat yang kamu ketik meninggalkan luka yang sulit terhapus di hati orang lain."
+          }
+        ]
+      },
+      {
+        id: 5,
+        title: "Dilema Antara Push Rank Game & Tugas Sekolah",
+        category: "Manajemen Waktu & Pengendalian Diri",
+        icon: "⏳",
+        context: "Kehidupan Pribadi & Disiplin Diri Remaja",
+        story: "Pukul 20.30 malam. Ada tugas proyek presentasi kelompok yang harus dikumpulkan besok pagi jam 07.00 dan bagianmu belum tuntas. Tiba-tiba teman satu squad game online menelepon: \"Woi login sekarang! Kurang 1 orang lagi nih buat push rank season terakhir. Kalau menang kita naik tier mythic bareng-bareng!\".",
+        reflectionQuestion: "Bagaimana caramu mengelola dorongan kesenangan sesaat ini?",
+        options: [
+          {
+            type: "bijak",
+            label: "Opsi A",
+            text: "Kirim pesan singkat ke teman squad: \"Malam ini aku skip dulu ya kawan, ada deadline tugas penting besok pagi. Besok sore pas tugas beres kita mabar lagi sepuasnya!\". Lalu matikan notifikasi HP dan fokus menyelesaikan tugas hingga tuntas.",
+            impact: { empati: 8, asertif: 14, kontrol: 18 },
+            feedbackTitle: "Disiplin Diri & Menunda Kesenangan Sesaat (Delayed Gratification)!",
+            explanation: "Hebat sekali! Kamu memahami skala prioritas penting vs mendesak. Kemampuan menunda kesenangan sesaat (delayed gratification) adalah salah satu prediktor terbesar kesuksesan hidup di masa depan.",
+            quote: "Disiplin adalah memilih antara apa yang kamu inginkan sekarang dengan apa yang paling kamu inginkan nanti."
+          },
+          {
+            type: "pasif",
+            label: "Opsi B",
+            text: "Merasa bingung dan tidak enak hati menolak squad, akhirnya mencoba mengerjakan tugas sambil sesekali membuka game. Akibatnya tugas selesai berantakan dan permainan game pun kalah telak.",
+            impact: { empati: 0, asertif: -8, kontrol: -10 },
+            feedbackTitle: "Jebakan Multitasking & Keragu-raguan",
+            explanation: "Mencoba menyenangkan semua orang secara bersamaan membuatmu kehilangan fokus pada keduanya. Otak manusia tidak dirancang untuk berpindah konsentrasi secara intensif dalam waktu singkat.",
+            quote: "Jika kamu mengejar dua kelinci sekaligus, kamu tidak akan menangkap satu pun."
+          },
+          {
+            type: "agresif",
+            label: "Opsi C",
+            text: "Langsung ikut login mabar hingga larut malam pukul 02.00, lalu besok paginya mencari-cari alasan palsu ke guru dan teman sekelompok bahwa koneksi internetmu mati atau mendadak sakit.",
+            impact: { empati: -12, asertif: 2, kontrol: -18 },
+            feedbackTitle: "Pelarian Tanggung Jawab & Kebohongan",
+            explanation: "Menuruti dorongan impulsif dan menutupinya dengan alasan palsu akan merusak rasa percaya teman sekelompok dan gurumu. Rasa bersalah ini juga akan menumpuk menjadi beban kecemasan berkepanjangan.",
+            quote: "Kejujuran dan tanggung jawab adalah fondasi harga diri yang tidak bisa ditawar oleh kesenangan sesaat."
+          }
+        ]
+      }
+    ];
+
+    /* =====================================================================
+       STATE MANAGEMENT & AUDIO SYNTHESIZER
+       ===================================================================== */
+    const state = {
+      playerName: "Sobat Bijak",
+      playerGrade: "Kelas X (SMA/SMK)",
+      currentScenarioIndex: 0,
+      scores: {
+        empati: 40,
+        asertif: 40,
+        kontrol: 40
+      },
+      decisions: [], // Menyimpan histori pilihan siswa
+      isAnswerSubmitted: false,
+      audioEnabled: true
+    };
+
+    // Web Audio API Synthesizer (Bebas file luar, ringan, bebas lag)
+    let audioCtx = null;
+    function getAudioContext() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) audioCtx = new AudioContextClass();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function playTone(freq, type, duration, delay = 0) {
+      if (!state.audioEnabled) return;
+      try {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        setTimeout(() => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, ctx.currentTime);
+          gain.gain.setValueAtTime(0.08, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start();
+          osc.stop(ctx.currentTime + duration);
+        }, delay);
+      } catch (e) {
+        // Abaikan jika browser membatasi audio
+      }
+    }
+
+    function sfxClick() {
+      playTone(520, 'sine', 0.08);
+    }
+
+    function sfxWise() {
+      // Arpeggio C Major Ceria
+      playTone(523.25, 'triangle', 0.15, 0);   // C5
+      playTone(659.25, 'triangle', 0.15, 90);  // E5
+      playTone(783.99, 'triangle', 0.22, 180); // G5
+      playTone(1046.5, 'triangle', 0.35, 270); // C6
+    }
+
+    function sfxReflect() {
+      // Dua nada harmonis lembut
+      playTone(440, 'sine', 0.2, 0);
+      playTone(554.37, 'sine', 0.25, 100);
+    }
+
+    function toggleAudio() {
+      state.audioEnabled = !state.audioEnabled;
+      const icon = document.getElementById('soundIcon');
+      const label = document.getElementById('soundLabel');
+      if (state.audioEnabled) {
+        icon.innerText = '🔊';
+        label.innerText = 'Audio Aktif';
+        sfxClick();
+        showToast("Suara efek diaktifkan");
+      } else {
+        icon.innerText = '🔇';
+        label.innerText = 'Audio Bisu';
+        showToast("Suara efek dimatikan");
+      }
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toastMessage');
+      toast.innerText = message;
+      toast.classList.remove('translate-y-12', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        toast.classList.add('translate-y-12', 'opacity-0');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 2400);
+    }
+
+    /* =====================================================================
+       GAMEPLAY CONTROLLER
+       ===================================================================== */
+    function startGame() {
+      sfxClick();
+      const nameInput = document.getElementById('inputPlayerName').value.trim();
+      const gradeInput = document.getElementById('selectClassGrade').value;
+      state.playerName = nameInput || "Sobat Bijak";
+      state.playerGrade = gradeInput;
+      state.currentScenarioIndex = 0;
+      state.scores = { empati: 40, asertif: 40, kontrol: 40 };
+      state.decisions = [];
+      state.isAnswerSubmitted = false;
+
+      // Update Bar Status
+      document.getElementById('barPlayerBadge').innerText = state.playerName;
+      document.getElementById('statsBarContainer').classList.remove('hidden');
+
+      // Ganti Tampilan Layar
+      document.getElementById('screenOnboarding').classList.add('hidden');
+      document.getElementById('screenSummary').classList.add('hidden');
+      document.getElementById('screenGameplay').classList.remove('hidden');
+
+      updateMeterDisplay();
+      renderCurrentScenario();
+    }
+
+    function updateMeterDisplay() {
+      // Clamp nilai 0 - 100
+      const emp = Math.max(0, Math.min(100, state.scores.empati));
+      const ase = Math.max(0, Math.min(100, state.scores.asertif));
+      const kon = Math.max(0, Math.min(100, state.scores.kontrol));
+
+      document.getElementById('valEmpati').innerText = emp;
+      document.getElementById('meterEmpati').style.width = emp + '%';
+
+      document.getElementById('valAsertif').innerText = ase;
+      document.getElementById('meterAsertif').style.width = ase + '%';
+
+      document.getElementById('valKontrol').innerText = kon;
+      document.getElementById('meterKontrol').style.width = kon + '%';
+    }
+
+    function renderCurrentScenario() {
+      const current = scenarios[state.currentScenarioIndex];
+      state.isAnswerSubmitted = false; // Reset lock state
+
+      // Update Progress
+      const currentStep = state.currentScenarioIndex + 1;
+      const totalSteps = scenarios.length;
+      const progressPercent = Math.round((currentStep / totalSteps) * 100);
+
+      document.getElementById('textScenarioIndex').innerText = `Skenario ${currentStep} dari ${totalSteps}`;
+      document.getElementById('textProgressPercent').innerText = `${progressPercent}% Selesai`;
+      document.getElementById('progressBarFill').style.width = `${progressPercent}%`;
+      document.getElementById('barScenarioIndicator').innerText = `Skenario ${currentStep} / ${totalSteps}`;
+
+      // Update Konten Kartu
+      document.getElementById('badgeCategory').innerText = current.category;
+      document.getElementById('scenarioIcon').innerText = current.icon;
+      document.getElementById('scenarioTitle').innerText = current.title;
+      document.getElementById('scenarioContext').innerText = `Situasi: ${current.context}`;
+      document.getElementById('scenarioStory').innerHTML = current.story;
+
+      // Render 3 Opsi Pilihan (Diacak sedikit variasinya agar netral tanpa label jawaban bocor)
+      const optionsContainer = document.getElementById('optionsList');
+      optionsContainer.innerHTML = '';
+
+      // Tampilkan opsi secara bersih
+      current.options.forEach((opt, idx) => {
+        const optionBtn = document.createElement('button');
+        optionBtn.type = 'button';
+        optionBtn.className = `option-choice-btn w-full p-4 text-left rounded-xl border border-slate-200 hover:border-teal-500 bg-white hover:bg-teal-50/40 text-slate-800 transition-all cursor-pointer flex items-start gap-3.5 group shadow-xs`;
+        optionBtn.onclick = () => selectOption(idx);
+        
+        optionBtn.innerHTML = `
+          <div class="w-8 h-8 rounded-lg bg-slate-100 group-hover:bg-teal-600 group-hover:text-white text-slate-700 font-bold text-sm flex items-center justify-center shrink-0 transition-colors">
+            ${String.fromCharCode(65 + idx)}
+          </div>
+          <div class="flex-1 text-sm leading-relaxed text-slate-700 group-hover:text-slate-900 font-medium pt-0.5">
+            ${opt.text}
+          </div>
+        `;
+        optionsContainer.appendChild(optionBtn);
+      });
+    }
+
+    function selectOption(optionIndex) {
+      // PREVENT DOUBLE CLICK BUG
+      if (state.isAnswerSubmitted) return;
+      state.isAnswerSubmitted = true;
+
+      // Kunci semua tombol agar tidak bisa diklik lagi pada ronde ini
+      const buttons = document.querySelectorAll('.option-choice-btn');
+      buttons.forEach(btn => {
+        btn.disabled = true;
+        btn.classList.add('opacity-60', 'cursor-not-allowed');
+      });
+
+      const currentScenario = scenarios[state.currentScenarioIndex];
+      const chosenOption = currentScenario.options[optionIndex];
+
+      // Update Skor
+      state.scores.empati = Math.max(0, Math.min(100, state.scores.empati + chosenOption.impact.empati));
+      state.scores.asertif = Math.max(0, Math.min(100, state.scores.asertif + chosenOption.impact.asertif));
+      state.scores.kontrol = Math.max(0, Math.min(100, state.scores.kontrol + chosenOption.impact.kontrol));
+
+      // Simpan riwayat keputusan
+      state.decisions.push({
+        scenario: currentScenario,
+        chosen: chosenOption
+      });
+
+      updateMeterDisplay();
+
+      // Mainkan efek suara sesuai tipe keputusan
+      if (chosenOption.type === 'bijak') {
+        sfxWise();
+      } else {
+        sfxReflect();
+      }
+
+      // Tampilkan Modal Refleksi Edukatif (Feedback BK)
+      showFeedbackModal(chosenOption);
+    }
+
+    function showFeedbackModal(option) {
+      const modal = document.getElementById('feedbackModal');
+      const badge = document.getElementById('modalTypeBadge');
+      const category = document.getElementById('modalTypeCategory');
+      const title = document.getElementById('modalFeedbackTitle');
+      const explanation = document.getElementById('modalFeedbackExplanation');
+      const quote = document.getElementById('modalWisdomQuote');
+      const deltasContainer = document.getElementById('modalScoreDeltas');
+      const nextBtnText = document.getElementById('nextBtnText');
+
+      // Sesuaikan warna dan badge berdasarkan jenis keputusan
+      if (option.type === 'bijak') {
+        badge.className = "w-12 h-12 rounded-xl flex items-center justify-center text-2xl font-bold bg-teal-100 text-teal-800";
+        badge.innerText = "🌟";
+        category.className = "text-xs font-bold uppercase tracking-wider block text-teal-700";
+        category.innerText = "Pilihan Bijak & Asertif";
+      } else if (option.type === 'pasif') {
+        badge.className = "w-12 h-12 rounded-xl flex items-center justify-center text-2xl font-bold bg-amber-100 text-amber-800";
+        badge.innerText = "🍃";
+        category.className = "text-xs font-bold uppercase tracking-wider block text-amber-700";
+        category.innerText = "Pilihan Pasif / Menghindar";
+      } else {
+        badge.className = "w-12 h-12 rounded-xl flex items-center justify-center text-2xl font-bold bg-rose-100 text-rose-800";
+        badge.innerText = "⚡";
+        category.className = "text-xs font-bold uppercase tracking-wider block text-rose-700";
+        category.innerText = "Pilihan Agresif / Reaktif";
+      }
+
+      title.innerText = option.feedbackTitle;
+      explanation.innerText = option.explanation;
+      quote.innerText = `"${option.quote}"`;
+
+      // Render Delta Skor
+      deltasContainer.innerHTML = '';
+      const impacts = [
+        { label: '💖 Empati', val: option.impact.empati },
+        { label: '🗣️ Asertif', val: option.impact.asertif },
+        { label: '🛡️ Kontrol', val: option.impact.kontrol }
+      ];
+
+      impacts.forEach(item => {
+        const span = document.createElement('span');
+        const sign = item.val >= 0 ? `+${item.val}` : `${item.val}`;
+        const colorClass = item.val > 0 
+          ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+          : item.val < 0 
+          ? 'bg-rose-50 text-rose-700 border-rose-200'
+          : 'bg-slate-100 text-slate-600 border-slate-200';
+        span.className = `px-2 py-0.5 rounded border font-semibold ${colorClass}`;
+        span.innerText = `${item.label} (${sign})`;
+        deltasContainer.appendChild(span);
+      });
+
+      // Teks tombol next jika ini skenario terakhir
+      const isLast = (state.currentScenarioIndex === scenarios.length - 1);
+      nextBtnText.innerText = isLast ? "Lihat Analisis Karakter Akhir 🎉" : "Lanjut ke Skenario Berikutnya";
+
+      modal.classList.remove('hidden');
+    }
+
+    function proceedToNext() {
+      sfxClick();
+      const modal = document.getElementById('feedbackModal');
+      modal.classList.add('hidden');
+
+      state.currentScenarioIndex++;
+      if (state.currentScenarioIndex < scenarios.length) {
+        renderCurrentScenario();
+      } else {
+        renderSummaryScreen();
+      }
+    }
+
+    /* =====================================================================
+       HALAMAN HASIL AKHIR / RINGKASAN KARAKTER BK
+       ===================================================================== */
+    function renderSummaryScreen() {
+      // Sembunyikan gameplay & bar status atas
+      document.getElementById('screenGameplay').classList.add('hidden');
+      document.getElementById('statsBarContainer').classList.add('hidden');
+      document.getElementById('screenSummary').classList.remove('hidden');
+
+      // Set Info Siswa
+      document.getElementById('summaryPlayerName').innerText = state.playerName;
+      document.getElementById('summaryPlayerGrade').innerText = state.playerGrade;
+      
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+      document.getElementById('summaryDate').innerText = dateStr;
+
+      // Set Nilai Akhir
+      const emp = state.scores.empati;
+      const ase = state.scores.asertif;
+      const kon = state.scores.kontrol;
+
+      document.getElementById('finalScoreEmpati').innerText = `${emp}/100`;
+      document.getElementById('finalBarEmpati').style.width = `${emp}%`;
+
+      document.getElementById('finalScoreAsertif').innerText = `${ase}/100`;
+      document.getElementById('finalBarAsertif').style.width = `${ase}%`;
+
+      document.getElementById('finalScoreKontrol').innerText = `${kon}/100`;
+      document.getElementById('finalBarKontrol').style.width = `${kon}%`;
+
+      // Analisis Arketipe Karakter Berdasarkan Kombinasi Skor
+      const archetype = evaluateArchetype(emp, ase, kon);
+      document.getElementById('archetypeTitle').innerText = archetype.title;
+      document.getElementById('archetypeDesc').innerText = archetype.description;
+      document.getElementById('counselorNote').innerText = `"${archetype.counselorAdvice}"`;
+
+      // Render Rekap 5 Pilihan yang Diambil
+      const recapContainer = document.getElementById('decisionsRecapList');
+      recapContainer.innerHTML = '';
+
+      state.decisions.forEach((dec, idx) => {
+        const item = document.createElement('div');
+        item.className = 'p-4 rounded-xl border border-slate-200 bg-slate-50/60 text-xs sm:text-sm';
+        
+        let typeBadgeClass = 'text-teal-700 bg-teal-50 border-teal-200';
+        let typeIcon = '🌟';
+        let typeName = 'Pilihan Bijak & Asertif';
+
+        if (dec.chosen.type === 'pasif') {
+          typeBadgeClass = 'text-amber-700 bg-amber-50 border-amber-200';
+          typeIcon = '🍃';
+          typeName = 'Pilihan Pasif / Menghindar';
+        } else if (dec.chosen.type === 'agresif') {
+          typeBadgeClass = 'text-rose-700 bg-rose-50 border-rose-200';
+          typeIcon = '⚡';
+          typeName = 'Pilihan Agresif / Reaktif';
+        }
+
+        item.innerHTML = `
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <span class="font-bold text-slate-800">Kasus ${idx + 1}: ${dec.scenario.title}</span>
+            <span class="px-2 py-0.5 rounded border text-[11px] font-semibold ${typeBadgeClass} flex items-center gap-1">
+              <span>${typeIcon}</span>
+              <span>${typeName}</span>
+            </span>
+          </div>
+          <p class="text-slate-600 mb-2 italic">
+            "${dec.chosen.text}"
+          </p>
+          <div class="pt-2 border-t border-slate-200/80 text-slate-500 text-xs">
+            <strong>Pelajaran BK:</strong> ${dec.chosen.explanation}
+          </div>
+        `;
+        recapContainer.appendChild(item);
+      });
+
+      // Scroll ke bagian atas
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function evaluateArchetype(emp, ase, kon) {
+      // Logika Penilaian Profil BK yang Mendalam & Edukatif
+      if (emp >= 70 && ase >= 70 && kon >= 70) {
+        return {
+          title: "Sang Pemimpin Bijak & Diplomat Sejati 🌟",
+          description: "Kombinasi skor karaktermu berada pada level yang sangat matang. Kamu memiliki empati yang hangat untuk merangkul orang lain, keberanian asertif untuk memegang prinsip, serta kontrol diri yang kokoh saat menghadapi gejolak emosi. Karakter ini sangat cocok menjadi figur teladan dan penengah di lingkungan sekolah.",
+          counselorAdvice: "Pertahankan ketenangan dan kepedulianmu. Jadilah agen perdamaian (peacemaker) di kelasmu dan teruslah menginspirasi teman-teman sebaya untuk berani memilih kebaikan."
+        };
+      } else if (emp >= 70 && ase < 60) {
+        return {
+          title: "Sahabat Berhati Emas yang Perlu Lebih Berani 💖",
+          description: "Tingkat empatimu luar biasa tinggi, kamu sangat peduli dan tidak tega melihat orang lain bersedih. Namun terkadang, kamu ragu menyuarakan batasan pribadimu karena takut menyinggung perasaan orang lain atau dijauhi teman.",
+          counselorAdvice: "Ingatlah bahwa menyayangi orang lain bukan berarti harus mengorbankan kenyamanan dirimu sendiri. Mengatakan 'tidak' secara santun adalah tanda cinta pada dirimu dan menjaga persahabatan tetap sehat."
+        };
+      } else if (ase >= 70 && kon < 60) {
+        return {
+          title: "Pejuang Berani yang Perlu Mengasah Regulasi Emosi ⚡",
+          description: "Kamu adalah pribadi yang jujur, berani bersuara, dan tidak suka ketidakadilan. Namun ketika menghadapi situasi yang menekan atau mengecewakan, responsmu terkadang masih dipengaruhi oleh dorongan emosi sesaat.",
+          counselorAdvice: "Keberanianmu adalah aset yang sangat berharga. Padukan keberanian itu dengan teknik 'Pause & Breathe' (tarik napas jeda 5 detik) sebelum berbicara agar kata-katamu menjadi solusi, bukan amunisi kemarahan."
+        };
+      } else if (kon >= 70 && ase < 60) {
+        return {
+          title: "Pengendali Diri yang Tenang & Bijaksana 🛡️",
+          description: "Kamu memiliki kedisiplinan dan kesabaran yang patut diacungi jempol. Kamu tidak mudah terpancing amarah atau tergiur godaan kesenangan sesaat. Langkah selanjutnya adalah lebih percaya diri untuk mengutarakan pendapatmu di depan publik.",
+          counselorAdvice: "Pikiranmu yang tenang memiliki banyak ide cemerlang. Jangan ragu membagikannya kepada guru dan teman-temanmu agar lingkunganmu dapat merasakan manfaat kebijaksanaanmu."
+        };
+      } else {
+        return {
+          title: "Pribadi Bersemangat yang Terus Bertumbuh 🌱",
+          description: "Kamu telah menunjukkan niat baik dalam menjalani simulasi keputusan ini. Karaktermu sedang dalam proses mekar dan belajar dari setiap dinamika pergaulan masa remaja.",
+          counselorAdvice: "Masa remaja adalah laboratorium kehidupan. Setiap kegagalan atau keraguan adalah kesempatan emas untuk berlatih empati, kejujuran asertif, dan disiplin diri. Ruang BK selalu terbuka untuk menemanimu berproses!"
+        };
+      }
+    }
+
+    function restartGame() {
+      sfxClick();
+      document.getElementById('screenSummary').classList.add('hidden');
+      document.getElementById('screenOnboarding').classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function shareResult() {
+      sfxClick();
+      const emp = state.scores.empati;
+      const ase = state.scores.asertif;
+      const kon = state.scores.kontrol;
+      const text = `🏆 Hasil Quest Pilihan Hidup (BK) - ${state.playerName}:\n` +
+                   `💖 Empati: ${emp}/100\n` +
+                   `🗣️ Asertif: ${ase}/100\n` +
+                   `🛡️ Kontrol Diri: ${kon}/100\n\n` +
+                   `Mari belajar membuat keputusan bijak setiap hari!`;
+      
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+          showToast("Hasil berhasil disalin ke clipboard!");
+        }).catch(() => {
+          showToast("Gagal menyalin hasil.");
+        });
+      } else {
+        showToast("Hasil siap dicetak via tombol Cetak.");
+      }
+    }
+
+    /* Modal Panduan Nilai */
+    function openGuideModal() {
+      sfxClick();
+      document.getElementById('guideModal').classList.remove('hidden');
+    }
+    function closeGuideModal() {
+      sfxClick();
+      document.getElementById('guideModal').classList.add('hidden');
+    }
+  </script>
+
+</body>
+</html>

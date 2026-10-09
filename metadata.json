@@ -1,0 +1,6 @@
+{
+  "name": "Langkah Bijak: Quest Pilihan Hidup",
+  "description": "Game simulasi keputusan interaktif untuk layanan Bimbingan dan Konseling (BK) remaja guna melatih empati, asertivitas, dan kontrol diri.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
